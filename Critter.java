@@ -7,7 +7,6 @@ import java.util.List;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
-import javafx.scene.shape.Circle;
 
 public abstract class Critter {
 	/* NEW FOR PROJECT 5 */
@@ -107,7 +106,6 @@ public abstract class Critter {
 	
 	private boolean moved = false;
 	private boolean inFight = false;
-	private static boolean shown = false;
 	
 	protected final void walk(int direction) {
 		energy -= Params.walk_energy_cost;									// decrement the critter's energy
@@ -373,25 +371,25 @@ public abstract class Critter {
 	
 	public static void displayWorld(GridPane pane) {
 		GridPane world = new GridPane();
-		if(!shown) {
-			final int numCritterCols = 5;
-			final int numCritterRows = 5;
-			for(int i = 0; i < numCritterCols; i++) {
-				ColumnConstraints colConst = new ColumnConstraints();
-				colConst.setPercentWidth(100.0/numCritterCols);
-				world.getColumnConstraints().add(colConst);
-			}
-			for(int i = 0; i < numCritterRows; i++) {
-				RowConstraints rowConst = new RowConstraints();
-				rowConst.setPercentHeight(100.0/numCritterRows);
-				world.getRowConstraints().add(rowConst);
-			}
-			world.setGridLinesVisible(true);
-		
-			pane.add(world, 1, 0);
-			shown = true;
+		final int numCritterCols = 5;
+		final int numCritterRows = 5;
+		for(int i = 0; i < numCritterCols; i++) {
+			ColumnConstraints colConst = new ColumnConstraints();
+			colConst.setPercentWidth(100.0/numCritterCols);
+			world.getColumnConstraints().add(colConst);
 		}
+		for(int i = 0; i < numCritterRows; i++) {
+			RowConstraints rowConst = new RowConstraints();
+			rowConst.setPercentHeight(100.0/numCritterRows);
+			world.getRowConstraints().add(rowConst);
+		}
+		world.setGridLinesVisible(true);
+		pane.add(world, 1, 0);
 	} 
+	/* Alternate displayWorld, where you use Main.<pane> to reach into your
+	   display component.
+	   // public static void displayWorld() {}
+	*/
 	
 	/* create and initialize a Critter subclass
 	 * critter_class_name must be the name of a concrete subclass of Critter, if not
