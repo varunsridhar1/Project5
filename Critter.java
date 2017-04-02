@@ -1,11 +1,22 @@
 package assignment5;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javafx.scene.shape.*;
+import javafx.scene.paint.*;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.geometry.HPos;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
 
 public abstract class Critter {
@@ -106,6 +117,7 @@ public abstract class Critter {
 	
 	private boolean moved = false;
 	private boolean inFight = false;
+	private static boolean shown = false;
 	
 	protected final void walk(int direction) {
 		energy -= Params.walk_energy_cost;									// decrement the critter's energy
@@ -371,25 +383,44 @@ public abstract class Critter {
 	
 	public static void displayWorld(GridPane pane) {
 		GridPane world = new GridPane();
-		final int numCritterCols = 5;
-		final int numCritterRows = 5;
-		for(int i = 0; i < numCritterCols; i++) {
-			ColumnConstraints colConst = new ColumnConstraints();
-			colConst.setPercentWidth(100.0/numCritterCols);
-			world.getColumnConstraints().add(colConst);
+		if(!shown) {
+			final int numCritterCols = 10;
+			final int numCritterRows = 10;
+			for(int i = 0; i < numCritterCols; i++) {
+				ColumnConstraints colConst = new ColumnConstraints();
+				colConst.setPercentWidth(100.0/numCritterCols);
+				colConst.setHgrow(Priority.ALWAYS);
+				world.getColumnConstraints().add(colConst);
+			}
+			for(int i = 0; i < numCritterRows; i++) {
+				RowConstraints rowConst = new RowConstraints();
+				rowConst.setPercentHeight(100.0/numCritterRows);
+				rowConst.setVgrow(Priority.ALWAYS);
+				world.getRowConstraints().add(rowConst);
+			}
+			
+			world.setGridLinesVisible(true);
+			
+			/*NumberBinding heightBind = Bindings.max(world.heightProperty(), 0);
+			NumberBinding widthBind = Bindings.max(world.widthProperty(), 0);
+			Rectangle shape = new Rectangle();
+			shape.widthProperty().bind(widthBind.divide(numCritterCols));
+			shape.heightProperty().bind(heightBind.divide(numCritterRows));
+			shape.setFill(Color.BLACK);
+			world.add(shape, 9, 9);*/
+			
+			ArrayList<Shape> critterViews = critterView(world, numCritterCols, numCritterRows);
+			for(Shape s: critterViews) {
+				if(s instanceof Circle) 
+					world.add(s, (int)((Circle)s).getCenterX(), (int)((Circle)s).getCenterY());
+			}
+				
+			
+			pane.add(world, 1, 0);
+			shown = true;
 		}
-		for(int i = 0; i < numCritterRows; i++) {
-			RowConstraints rowConst = new RowConstraints();
-			rowConst.setPercentHeight(100.0/numCritterRows);
-			world.getRowConstraints().add(rowConst);
-		}
-		world.setGridLinesVisible(true);
-		pane.add(world, 1, 0);
-	} 
-	/* Alternate displayWorld, where you use Main.<pane> to reach into your
-	   display component.
-	   // public static void displayWorld() {}
-	*/
+	}
+	
 	
 	/* create and initialize a Critter subclass
 	 * critter_class_name must be the name of a concrete subclass of Critter, if not
@@ -544,6 +575,29 @@ public abstract class Critter {
         }
         return null;
     }
+	
+	private static ArrayList<Shape> critterView(GridPane world, int numCols, int numRows) {
+		ArrayList<Shape> shapes = new ArrayList<Shape>();
+		for(Critter c: population) {
+			CritterShape s = c.viewShape();
+			Color outlineColor = c.viewOutlineColor();
+			Color fillColor = c.viewFillColor();
+			
+			if(s == CritterShape.CIRCLE) {
+				Circle circle = new Circle();
+				circle.setStroke(outlineColor);
+				circle.setFill(fillColor);
+				
+				NumberBinding radiusBind = Bindings.min(world.widthProperty().divide(numCols), world.heightProperty().divide(numRows));
+				circle.radiusProperty().bind(radiusBind.divide(2));
+				circle.setCenterX(c.x_coord + world.getWidth() / numCols);
+				circle.setCenterY(c.y_coord + world.getHeight() / numRows);
+				shapes.add(circle);
+			}
+		}
+		
+		return shapes;
+	}
 	
 	
 }
