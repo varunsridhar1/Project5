@@ -22,6 +22,7 @@ import java.io.*;
 public class Main extends Application{
 
 	private static String myPackage;	// package of Critter file.  Critter cannot be in default pkg.
+	private static boolean statsShown;
 	
 	static {
         myPackage = Critter.class.getPackage().toString().split(" ")[1];
@@ -73,6 +74,38 @@ public class Main extends Application{
 			rowConst.setPercentHeight(100.0 / numRows);
 			grid.getRowConstraints().add(rowConst);
 		}
+		
+		Button stats = new Button();
+		stats.setText("Stats");
+		ArrayList<String> classes = validClasses();
+		ObservableList<String> critterOptions = FXCollections.observableArrayList(classes);
+		ComboBox<String> statsBox = new ComboBox<String>(critterOptions);
+		statsBox.setValue("");
+		GridPane statsPane = new GridPane();
+		Label statsLabel = new Label();
+		stats.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if(!statsBox.getValue().equals("")) {
+					try {
+						List<Critter> list = Critter.getInstances(statsBox.getValue());
+						Class<?> c;
+						Method method;
+						c = Class.forName(myPackage + "." + statsBox.getValue());
+						method = c.getMethod("runStats", List.class);
+						String result = (String) method.invoke(null, list);
+						result = "\n" + result;
+						statsLabel.setText(result);
+						statsPane.add(statsLabel, 0, 0);
+						overall.add(statsPane, 0, 1);
+						statsShown = true;
+					} catch(Exception e) {
+						
+					}
+				}
+				
+			}
+		});
 				
 		Button timeStep = new Button();
 		timeStep.setText("Step");
@@ -93,22 +126,39 @@ public class Main extends Application{
 		timeStep.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				if(!timeStepBox.getValue().equals("")) {
-					int steps = 0;
-					if(timeStepBox.getValue().equals("other")) {
-						try {
-							steps = Integer.valueOf(amountField.getText());
-						} catch(Exception exception) {
-							error(amountField.getText());
-						}
+				int steps = 1;
+				if(timeStepBox.getValue().equals("other")) {
+					try {
+						steps = Integer.valueOf(amountField.getText());
+					} catch(Exception exception) {
+						error(amountField.getText());
 					}
-					else
-						steps = Integer.valueOf(timeStepBox.getValue());
-					timeStepBox.setValue("");
-					amountField.clear();
-					grid.getChildren().remove(amountField);
-					for(int i = 0; i < steps; i++)
-						Critter.worldTimeStep();
+				}
+				else if(!timeStepBox.getValue().equals(""))
+					steps = Integer.valueOf(timeStepBox.getValue());
+				timeStepBox.setValue("");
+				amountField.clear();
+				grid.getChildren().remove(amountField);
+				for(int i = 0; i < steps; i++)
+					Critter.worldTimeStep();
+				if(Critter.isShown())
+					Critter.displayWorld(nonStats);
+				if(statsShown) {
+					try {
+						List<Critter> list = Critter.getInstances(statsBox.getValue());
+						Class<?> c;
+						Method method;
+						c = Class.forName(myPackage + "." + statsBox.getValue());
+						method = c.getMethod("runStats", List.class);
+						String result = (String) method.invoke(null, list);
+						result = "\n" + result;
+						statsLabel.setText(result);
+						statsPane.add(statsLabel, 0, 0);
+						overall.add(statsPane, 0, 1);
+						statsShown = true;
+					} catch(Exception e) {
+							
+					}
 				}
 			}
 		});
@@ -150,38 +200,6 @@ public class Main extends Application{
 			}
 		});
 		
-		Button stats = new Button();
-		stats.setText("Stats");
-		ArrayList<String> classes = validClasses();
-		ObservableList<String> critterOptions = FXCollections.observableArrayList(classes);
-		ComboBox<String> statsBox = new ComboBox<String>(critterOptions);
-		statsBox.setValue("");
-		GridPane statsPane = new GridPane();
-		Label statsLabel = new Label();
-		stats.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				if(!statsBox.getValue().equals("")) {
-					try {
-						List<Critter> list = Critter.getInstances(statsBox.getValue());
-						Class<?> c;
-						Method method;
-						c = Class.forName(myPackage + "." + statsBox.getValue());
-						statsBox.setValue("");
-						method = c.getMethod("runStats", List.class);
-						String result = (String) method.invoke(null, list);
-						result = "\n" + result;
-						statsLabel.setText(result);
-						statsPane.add(statsLabel, 0, 0);
-						overall.add(statsPane, 0, 1);
-					} catch(Exception e) {
-						
-					}
-				}
-				
-			}
-		});
-		
 		Button make = new Button();
 		make.setText("Make");
 		ComboBox<String> makeBox = new ComboBox<String>(critterOptions);
@@ -208,6 +226,8 @@ public class Main extends Application{
 						for(int i = 0; i < amount; i++)
 							Critter.makeCritter(makeBox.getValue());
 						makeBox.setValue("");
+						if(Critter.isShown())
+							Critter.displayWorld(nonStats);
 					}
 					catch(Exception exception) {
 						error(makeField.getText());
@@ -231,6 +251,7 @@ public class Main extends Application{
 		grid.add(quit, numCols - 1, numRows - 1);
 		
 		primaryStage.setTitle("Critters");
+		primaryStage.setResizable(false);
 		primaryStage.show();
 	}
 	
