@@ -4,6 +4,11 @@ import java.lang.reflect.*;
 import java.util.Iterator;
 import java.util.List;
 
+import javafx.scene.shape.*;
+import javafx.scene.paint.*;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
+import javafx.geometry.HPos;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
@@ -372,7 +377,7 @@ public abstract class Critter {
 	public static void displayWorld(GridPane pane) {
 		GridPane world = new GridPane();
 		final int numCritterCols = 5;
-		final int numCritterRows = 5;
+		final int numCritterRows = 4;
 		for(int i = 0; i < numCritterCols; i++) {
 			ColumnConstraints colConst = new ColumnConstraints();
 			colConst.setPercentWidth(100.0/numCritterCols);
@@ -383,8 +388,23 @@ public abstract class Critter {
 			rowConst.setPercentHeight(100.0/numCritterRows);
 			world.getRowConstraints().add(rowConst);
 		}
+		NumberBinding rectsareasize =  Bindings.min(world.heightProperty(),world.widthProperty());
+		double width = world.getColumnConstraints().get(0).getPercentWidth()/2;
+		Rectangle shape = new Rectangle();
+		shape.widthProperty().bind(rectsareasize.divide(numCritterCols));
+		shape.heightProperty().bind(rectsareasize.divide(numCritterRows));
+		shape.setFill(Color.BLACK);;
+		world.add(shape, 1, 1);
 		world.setGridLinesVisible(true);
 		pane.add(world, 1, 0);
+		/*for(Critter c: population) {
+			Shape shape;
+			int x = c.x_coord;
+			int y = c.y_coord;
+			if(c.viewShape() ==CritterShape.CIRCLE){
+				shape = new Circle();
+			}
+		}*/
 	} 
 	/* Alternate displayWorld, where you use Main.<pane> to reach into your
 	   display component.
