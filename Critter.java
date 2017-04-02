@@ -52,6 +52,7 @@ public abstract class Critter {
 	private static String myPackage;
 	private	static List<Critter> population = new java.util.ArrayList<Critter>();
 	private static List<Critter> babies = new java.util.ArrayList<Critter>();
+	private static List<Shape> critterViews;
 
 	// Gets the package name.  This assumes that Critter and its subclasses are all in the same package.
 	static {
@@ -66,28 +67,28 @@ public abstract class Critter {
         else
             numSteps = 1;
         if(direction == 0){
-            return whatsOccupied((this.x_coord + numSteps) %Params.world_width,this.y_coord).toString();
+            return whatsOccupied(Math.floorMod((this.x_coord + numSteps), Params.world_width), this.y_coord).toString();
         }
         else if(direction == 1){
-            return whatsOccupied((this.x_coord + numSteps)%Params.world_width,(this.y_coord - numSteps) %Params.world_height).toString();
+            return whatsOccupied(Math.floorMod((this.x_coord + numSteps), Params.world_width), Math.floorMod((this.y_coord - numSteps), Params.world_height)).toString();
         }
         else if(direction == 2){
-            return whatsOccupied(this.x_coord,(this.y_coord - numSteps) % Params.world_height).toString();
+            return whatsOccupied(this.x_coord, Math.floorMod((this.y_coord - numSteps), Params.world_height)).toString();
         }
         else if(direction == 3){
-            return whatsOccupied((this.x_coord - numSteps) % Params.world_width,(this.y_coord - numSteps) % Params.world_height).toString();
+            return whatsOccupied(Math.floorMod((this.x_coord - numSteps), Params.world_width), Math.floorMod((this.y_coord - numSteps), Params.world_height)).toString();
         }
         else if(direction == 4){
-            return whatsOccupied((this.x_coord - numSteps) % Params.world_width,this.y_coord).toString();
+            return whatsOccupied(Math.floorMod((this.x_coord - numSteps), Params.world_width), this.y_coord).toString();
         }
         else if(direction == 5){
-            return whatsOccupied((this.x_coord - numSteps) % Params.world_width,(this.y_coord+numSteps) % Params.world_height).toString();
+            return whatsOccupied(Math.floorMod((this.x_coord - numSteps), Params.world_width), Math.floorMod((this.y_coord+numSteps), Params.world_height)).toString();
         }
         else if(direction == 6){
-            return whatsOccupied(this.x_coord,(this.y_coord+numSteps) % Params.world_height).toString();
+            return whatsOccupied(this.x_coord, Math.floorMod((this.y_coord+numSteps), Params.world_height)).toString();
         }
         else {
-            return whatsOccupied((this.x_coord + numSteps) % Params.world_width,(this.y_coord+numSteps) % Params.world_height).toString();
+            return whatsOccupied(Math.floorMod((this.x_coord + numSteps), Params.world_width), Math.floorMod((this.y_coord+numSteps), Params.world_height)).toString();
         }
     }
 	
@@ -118,79 +119,88 @@ public abstract class Critter {
 	private boolean moved = false;
 	private boolean inFight = false;
 	private static boolean shown = false;
+	private static GridPane world;
 	
 	protected final void walk(int direction) {
 		energy -= Params.walk_energy_cost;									// decrement the critter's energy
 		if(!moved) {														// if the critter hasn't already moved in this time step
 			if(direction == 0) {											// move the critter in the specified direction
-				if(!inFight) 
-					nextX_coord = (x_coord + 1) % Params.world_width;
-				if(inFight && !isOccupied((x_coord + 1) % Params.world_width, y_coord))
-					x_coord = (x_coord + 1) % Params.world_width;
+				if(!inFight) {
+					nextX_coord = Math.floorMod((x_coord + 1), Params.world_width);
+					nextY_coord = y_coord;
+				}
+				if(inFight && !isOccupied(Math.floorMod((x_coord + 1), Params.world_width), y_coord))
+					x_coord = Math.floorMod((x_coord + 1), Params.world_width);
 			}
 			else if(direction == 1) {
 				if(!inFight) {
-					nextX_coord = (x_coord + 1) % Params.world_width;
-					nextY_coord = (y_coord - 1) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord + 1), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord - 1), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord + 1) % Params.world_width, (y_coord - 1) % Params.world_height)) {
-					x_coord = (x_coord + 1) % Params.world_width;
-					y_coord = (y_coord - 1) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord + 1), Params.world_width), Math.floorMod((y_coord - 1), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord + 1), Params.world_width);
+					y_coord = Math.floorMod((y_coord - 1), Params.world_height);
 				}
 			}
 			else if(direction == 2) {
-				if(!inFight) 
-					nextY_coord = (y_coord - 1) % Params.world_height;
+				if(!inFight) {
+					nextX_coord = x_coord;
+					nextY_coord = Math.floorMod((y_coord - 1), Params.world_height);
+				}
 				
-				if(inFight && !isOccupied(x_coord, (y_coord - 1) % Params.world_height))
-					y_coord = (y_coord - 1) % Params.world_height;
+				if(inFight && !isOccupied(x_coord, Math.floorMod((y_coord - 1), Params.world_height)))
+					y_coord = Math.floorMod((y_coord - 1), Params.world_height);
 			}
 			else if(direction == 3) {
 				if(!inFight) {
-					nextX_coord = (x_coord - 1) % Params.world_width;
-					nextY_coord = (y_coord - 1) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord - 1), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord - 1), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord - 1) % Params.world_width, (y_coord - 1) % Params.world_height)) {
-					x_coord = (x_coord - 1) % Params.world_width;
-					y_coord = (y_coord - 1) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord - 1), Params.world_width), Math.floorMod((y_coord - 1), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord - 1), Params.world_width);
+					y_coord = Math.floorMod((y_coord - 1), Params.world_height);
 				}
 			}
 			else if(direction == 4) {
-				if(!inFight) 
-					nextX_coord = (x_coord - 1) % Params.world_width;
+				if(!inFight) {
+					nextX_coord = Math.floorMod((x_coord - 1), Params.world_width);
+					nextY_coord = y_coord;
+				}
 				
-				if(inFight && !isOccupied((x_coord - 1) % Params.world_width, y_coord)) 
-					x_coord = (x_coord - 1) % Params.world_width;
+				if(inFight && !isOccupied(Math.floorMod((x_coord - 1), Params.world_width), y_coord)) 
+					x_coord = Math.floorMod((x_coord - 1), Params.world_width);
 			}
 			else if(direction == 5) {
 				if(!inFight) {
-					nextX_coord = (x_coord - 1) % Params.world_width;
-					nextY_coord = (y_coord + 1) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord - 1), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord + 1), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord - 1) % Params.world_width, (y_coord + 1) % Params.world_height)) {
-					x_coord = (x_coord - 1) % Params.world_width;
-					y_coord = (y_coord + 1) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord - 1), Params.world_width), Math.floorMod((y_coord + 1), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord - 1), Params.world_width);
+					y_coord = Math.floorMod((y_coord + 1), Params.world_height);
 				}
 			}	
 			else if(direction == 6) {
-				if(!inFight) 
-					nextY_coord = (y_coord + 1) % Params.world_height;
+				if(!inFight) {
+					nextX_coord = x_coord;
+					nextY_coord = Math.floorMod((y_coord + 1), Params.world_height);
+				}
 				
-				if(inFight && !isOccupied(x_coord, (y_coord + 1) & Params.world_height))
-					y_coord = (y_coord + 1) % Params.world_height;
+				if(inFight && !isOccupied(x_coord, Math.floorMod((y_coord + 1), Params.world_height)))
+					y_coord = Math.floorMod((y_coord + 1), Params.world_height);
 			}
 			else {
 				if(!inFight) {
-					nextX_coord = (x_coord + 1) % Params.world_width;
-					nextY_coord = (y_coord + 1) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord + 1), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord + 1), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord + 1) % Params.world_width, (y_coord + 1) % Params.world_height)) {
-					x_coord = (x_coord + 1) % Params.world_width;
-					y_coord = (y_coord + 1) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord + 1), Params.world_width), Math.floorMod((y_coord + 1), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord + 1), Params.world_width);
+					y_coord = Math.floorMod((y_coord + 1), Params.world_height);
 				}
 			}
 		}
@@ -201,73 +211,81 @@ public abstract class Critter {
 		energy -= Params.run_energy_cost;									// decrement the critter's energy
 		if(!moved) {														// if the critter hasn't already moved in this time step
 			if(direction == 0) {											// move the critter in the specified direction
-				if(!inFight)
-					nextX_coord = (x_coord + 2) % Params.world_width;
+				if(!inFight) {
+					nextX_coord = Math.floorMod((x_coord + 2), Params.world_width);
+					nextY_coord = y_coord;
+				}
 				
-				if(inFight && !isOccupied((x_coord + 2) % Params.world_width, y_coord))
-					x_coord = (x_coord + 2) % Params.world_width;
+				if(inFight && !isOccupied(Math.floorMod((x_coord + 2), Params.world_width), y_coord))
+					x_coord = Math.floorMod((x_coord + 2), Params.world_width);
 			}
 			else if(direction == 1) {//move the critter in next direction, 7 or so things that look exactly like this
 				if(!inFight) {
-					nextX_coord = (x_coord + 2) % Params.world_width;
-					nextY_coord = (y_coord - 2) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord + 2), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord - 2), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord + 2) % Params.world_width, (y_coord - 2) % Params.world_height)) {
-					x_coord = (x_coord + 2) % Params.world_width;//Taking care of fight characteristics
-					y_coord = (y_coord - 2) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord + 2), Params.world_width), Math.floorMod((y_coord - 2), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord + 2), Params.world_width);//Taking care of fight characteristics
+					y_coord = Math.floorMod((y_coord - 2), Params.world_height);
 				}
 			}
 			else if(direction == 2) {
-				if(!inFight)
-					nextY_coord = (y_coord - 2) % Params.world_height;
+				if(!inFight) {
+					nextX_coord = x_coord;
+					nextY_coord = Math.floorMod((y_coord - 2), Params.world_height);
+				}
 				
-				if(inFight && !isOccupied(x_coord, (y_coord - 2) % Params.world_height)) 
-					y_coord = (y_coord - 2) % Params.world_height;
+				if(inFight && !isOccupied(x_coord, Math.floorMod((y_coord - 2), Params.world_height))) 
+					y_coord = Math.floorMod((y_coord - 2), Params.world_height);
 			}
 			else if(direction == 3) {
 				if(!inFight) {
-					nextX_coord = (x_coord - 2) % Params.world_width;
-					nextY_coord = (y_coord - 2) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord - 2), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord - 2), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord - 2) % Params.world_width, (y_coord - 2) % Params.world_height)) {
-					x_coord = (x_coord - 2) % Params.world_width;
-					y_coord = (y_coord - 2) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord - 2), Params.world_width), Math.floorMod((y_coord - 2), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord - 2), Params.world_width);
+					y_coord = Math.floorMod((y_coord - 2), Params.world_height);
 				}
 			}
 			else if(direction == 4) {
-				if(!inFight)
-					nextX_coord = (x_coord - 2) % Params.world_width;
+				if(!inFight) {
+					nextX_coord = Math.floorMod((x_coord - 2), Params.world_width);
+					nextY_coord = y_coord;
+				}
 				
-				if(inFight && !isOccupied((x_coord - 2) % Params.world_width, y_coord)) 
-					x_coord = (x_coord - 2) % Params.world_width;
+				if(inFight && !isOccupied(Math.floorMod((x_coord - 2), Params.world_width), y_coord)) 
+					x_coord = Math.floorMod((x_coord - 2), Params.world_width);
 			}
 			else if(direction == 5) {
 				if(!inFight) {
-					nextX_coord = (x_coord - 2) % Params.world_width;
-					nextY_coord = (y_coord + 2) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord - 2), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord + 2), Params.world_height);
 				}
 				
-				if(inFight && !isOccupied((x_coord - 2) % Params.world_width, (y_coord + 2) % Params.world_height)) {
-					x_coord = (x_coord - 2) % Params.world_width;
-					y_coord = (y_coord + 2) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord - 2), Params.world_width), Math.floorMod((y_coord + 2), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord - 2), Params.world_width);
+					y_coord = Math.floorMod((y_coord + 2), Params.world_height);
 				}
 			}
 			else if(direction == 6) {
-				if(!inFight)
-					nextY_coord = (y_coord + 2) % Params.world_height;
-				if(inFight && !isOccupied(x_coord, (y_coord + 2) % Params.world_height))
-					y_coord = (y_coord + 2) % Params.world_height;
+				if(!inFight) {
+					nextX_coord = x_coord;
+					nextY_coord = Math.floorMod((y_coord + 2), Params.world_height);
+				}
+				if(inFight && !isOccupied(x_coord, Math.floorMod((y_coord + 2), Params.world_height)))
+					y_coord = Math.floorMod((y_coord + 2), Params.world_height);
 			}
 			else {
 				if(!inFight) {
-					nextX_coord = (x_coord + 2) % Params.world_width;
-					nextY_coord = (y_coord + 2) % Params.world_height;
+					nextX_coord = Math.floorMod((x_coord + 2), Params.world_width);
+					nextY_coord = Math.floorMod((y_coord + 2), Params.world_height);
 				}
-				if(inFight && !isOccupied((x_coord + 2) % Params.world_width, (y_coord + 2) % Params.world_height)) {
-					x_coord = (x_coord + 2) % Params.world_width;
-					y_coord = (y_coord + 2) % Params.world_height;
+				if(inFight && !isOccupied(Math.floorMod((x_coord + 2), Params.world_width), Math.floorMod((y_coord + 2), Params.world_height))) {
+					x_coord = Math.floorMod((x_coord + 2), Params.world_width);
+					y_coord = Math.floorMod((y_coord + 2), Params.world_height);
 				}
 			}
 		}
@@ -279,36 +297,36 @@ public abstract class Critter {
 			offspring.energy = getEnergy() / 2;
 			energy = (int)Math.ceil(0.5 * (double)getEnergy());
 			if(direction == 0) {
-				offspring.x_coord = x_coord + 1;
+				offspring.x_coord = Math.floorMod(x_coord + 1, Params.world_width);
 				offspring.y_coord = y_coord;
 			}
 			else if(direction == 1) {
-				offspring.x_coord = x_coord + 1;
-				offspring.y_coord = y_coord - 1;
+				offspring.x_coord = Math.floorMod(x_coord + 1, Params.world_width);
+				offspring.y_coord = Math.floorMod(y_coord - 1, Params.world_height);
 			}
 			else if(direction == 2) {
 				offspring.x_coord = x_coord;
-				offspring.y_coord = y_coord - 1;
+				offspring.y_coord = Math.floorMod(y_coord - 1, Params.world_height);
 			}
 			else if(direction == 3) {
-				offspring.x_coord = x_coord - 1;
-				offspring.y_coord = y_coord - 1;
+				offspring.x_coord = Math.floorMod(x_coord - 1, Params.world_width);
+				offspring.y_coord = Math.floorMod(y_coord - 1, Params.world_height);
 			}
 			else if(direction == 4) {
-				offspring.x_coord = x_coord - 1;
+				offspring.x_coord = Math.floorMod(x_coord - 1, Params.world_width);
 				offspring.y_coord = y_coord;
 			}
 			else if(direction == 5) {
-				offspring.x_coord = x_coord - 1;
-				offspring.y_coord = y_coord + 1;
+				offspring.x_coord = Math.floorMod(x_coord - 1, Params.world_width);
+				offspring.y_coord = Math.floorMod(y_coord + 1, Params.world_height);
 			}
 			else if(direction == 6) {
 				offspring.x_coord = x_coord;
-				offspring.y_coord = y_coord + 1;
+				offspring.y_coord = Math.floorMod(y_coord + 1, Params.world_height);
 			}
 			else {
-				offspring.x_coord = x_coord + 1;
-				offspring.y_coord = y_coord + 1;
+				offspring.x_coord = Math.floorMod(x_coord + 1, Params.world_width);
+				offspring.y_coord = Math.floorMod(y_coord + 1, Params.world_height);
 			}
 			babies.add(offspring);
 		}
@@ -379,45 +397,50 @@ public abstract class Critter {
 		
 		population.addAll(babies);
 		babies.clear();
+		
 	}
 	
 	public static void displayWorld(GridPane pane) {
-		GridPane world = new GridPane();
+		final int numCritterCols = Params.world_width;
+		final int numCritterRows = Params.world_height;
 		if(!shown) {
-			final int numCritterCols = 10;
-			final int numCritterRows = 10;
+			world = new GridPane();
 			for(int i = 0; i < numCritterCols; i++) {
 				ColumnConstraints colConst = new ColumnConstraints();
 				colConst.setPercentWidth(100.0/numCritterCols);
-				colConst.setHgrow(Priority.ALWAYS);
 				world.getColumnConstraints().add(colConst);
 			}
 			for(int i = 0; i < numCritterRows; i++) {
 				RowConstraints rowConst = new RowConstraints();
 				rowConst.setPercentHeight(100.0/numCritterRows);
-				rowConst.setVgrow(Priority.ALWAYS);
 				world.getRowConstraints().add(rowConst);
 			}
 			
-			world.setGridLinesVisible(true);
-			
-			/*NumberBinding heightBind = Bindings.max(world.heightProperty(), 0);
-			NumberBinding widthBind = Bindings.max(world.widthProperty(), 0);
-			Rectangle shape = new Rectangle();
-			shape.widthProperty().bind(widthBind.divide(numCritterCols));
-			shape.heightProperty().bind(heightBind.divide(numCritterRows));
-			shape.setFill(Color.BLACK);
-			world.add(shape, 9, 9);*/
-			
-			ArrayList<Shape> critterViews = critterView(world, numCritterCols, numCritterRows);
+			critterViews = critterView(world, numCritterCols, numCritterRows);
 			for(Shape s: critterViews) {
 				if(s instanceof Circle) 
 					world.add(s, (int)((Circle)s).getCenterX(), (int)((Circle)s).getCenterY());
+				else if(s instanceof Rectangle)
+					world.add(s, (int)((Rectangle)s).getX(), (int)((Rectangle)s).getY());
 			}
-				
 			
+			world.setGridLinesVisible(true);
+			pane.add(world, 1, 0); 
+			shown = true; 
+		}
+		else {
+			world.getChildren().removeAll(critterViews);
+			pane.getChildren().remove(world);
+			
+			critterViews = critterView(world, numCritterCols, numCritterRows);
+			for(Shape s: critterViews) {
+				if(s instanceof Circle) 
+					world.add(s, (int)((Circle)s).getCenterX(), (int)((Circle)s).getCenterY());
+				else if(s instanceof Rectangle)
+					world.add(s, (int)((Rectangle)s).getX(), (int)((Rectangle)s).getY());
+			}
 			pane.add(world, 1, 0);
-			shown = true;
+			
 		}
 	}
 	
@@ -560,6 +583,10 @@ public abstract class Critter {
 		population.clear();
 	}
 	
+	public static boolean isShown() {
+		return shown;
+	}
+	
 	private boolean isOccupied(int x, int y) {
 		for(Critter c: population) {
 			if(c.x_coord == x && c.y_coord == y)//used to check if occupied
@@ -576,6 +603,7 @@ public abstract class Critter {
         return null;
     }
 	
+	
 	private static ArrayList<Shape> critterView(GridPane world, int numCols, int numRows) {
 		ArrayList<Shape> shapes = new ArrayList<Shape>();
 		for(Critter c: population) {
@@ -585,19 +613,41 @@ public abstract class Critter {
 			
 			if(s == CritterShape.CIRCLE) {
 				Circle circle = new Circle();
+				circle.setStrokeType(StrokeType.INSIDE);
 				circle.setStroke(outlineColor);
 				circle.setFill(fillColor);
 				
-				NumberBinding radiusBind = Bindings.min(world.widthProperty().divide(numCols), world.heightProperty().divide(numRows));
-				circle.radiusProperty().bind(radiusBind.divide(2));
-				circle.setCenterX(c.x_coord + world.getWidth() / numCols);
-				circle.setCenterY(c.y_coord + world.getHeight() / numRows);
+				NumberBinding radiusBind = Bindings.min(world.widthProperty(), world.heightProperty());
+				if(numCols > numRows)
+					circle.radiusProperty().bind(radiusBind.divide(numCols*2));
+				else
+					circle.radiusProperty().bind(radiusBind.divide(numRows*2));
+				circle.setCenterX(c.x_coord);
+				circle.setCenterY(c.y_coord);
 				shapes.add(circle);
+			}
+			else if(s == CritterShape.SQUARE) {
+				Rectangle square = new Rectangle();
+				square.setStrokeType(StrokeType.INSIDE);
+				square.setStroke(outlineColor);
+				square.setFill(fillColor);
+				
+				NumberBinding sideBind = Bindings.min(world.heightProperty(), world.widthProperty());
+				if(numCols > numRows) {
+					square.widthProperty().bind(sideBind.divide(numCols));
+					square.heightProperty().bind(sideBind.divide(numCols));
+				}
+				else {
+					square.widthProperty().bind(sideBind.divide(numRows));
+					square.heightProperty().bind(sideBind.divide(numRows));
+				}
+				square.setX(c.x_coord);
+				square.setY(c.y_coord);
+				shapes.add(square);
 			}
 		}
 		
 		return shapes;
 	}
-	
 	
 }
