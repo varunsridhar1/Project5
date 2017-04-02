@@ -14,6 +14,9 @@ import javafx.stage.Stage;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.sun.javafx.geom.Rectangle;
+
 import java.io.*;
 
 public class Main extends Application{
@@ -167,6 +170,7 @@ public class Main extends Application{
 						statsBox.setValue("");
 						method = c.getMethod("runStats", List.class);
 						String result = (String) method.invoke(null, list);
+						result = "\n" + result;
 						statsLabel.setText(result);
 						statsPane.add(statsLabel, 0, 0);
 						overall.add(statsPane, 0, 1);
@@ -225,6 +229,7 @@ public class Main extends Application{
 		grid.add(make, 0, 3);
 		grid.add(makeBox, 2, 3);
 		grid.add(quit, numCols - 1, numRows - 1);
+		
 		primaryStage.setTitle("Critters");
 		primaryStage.show();
 	}
